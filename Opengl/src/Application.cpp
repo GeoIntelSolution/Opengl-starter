@@ -114,6 +114,13 @@ int main(void)
 	if (!glfwInit())
 		return -1;
 
+	//default profile
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+	//glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE);
+	glfwWindowHint(GLFW_OPENGL_PROFILE,GLFW_OPENGL_CORE_PROFILE);
+
+
 	
 	/* Create a windowed mode window and its OpenGL context */
 	window = glfwCreateWindow(640, 480, "Hello World", NULL, NULL);
@@ -135,6 +142,10 @@ int main(void)
 
 	std::cout << glGetString(GL_VERSION) << std::endl;
 
+	unsigned int vao;
+	GLCall(glGenVertexArrays(1, &vao));
+	GLCall(glBindVertexArray(vao));
+
 	unsigned int a ;
 	glGenBuffers(1, &a);
 
@@ -150,20 +161,20 @@ int main(void)
 		2,3,0
 	};
 
-	glBindBuffer(GL_ARRAY_BUFFER, a);
-	glBufferData(GL_ARRAY_BUFFER,8*sizeof(float),positions,GL_STATIC_DRAW);
+	GLCall(glBindBuffer(GL_ARRAY_BUFFER, a));
+	GLCall(glBufferData(GL_ARRAY_BUFFER,8*sizeof(float),positions,GL_STATIC_DRAW));
 	
 
 
 
 
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), 0);
+	GLCall(glEnableVertexAttribArray(0));
+	GLCall(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), 0));
 
 	unsigned int ibo;
-	glGenBuffers(1, &ibo);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(unsigned int), indices, GL_STATIC_DRAW);
+	GLCall(glGenBuffers(1, &ibo));
+	GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo));
+	GLCall(glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(unsigned int), indices, GL_STATIC_DRAW));
 
 
 	ShaderProgramSource source = ParseShader("res/shaders/Basic.shader");
@@ -179,12 +190,25 @@ int main(void)
 
 	float r = 0.0f;
 	float increment = 0.05f;
+
+
+	GLCall(glBindVertexArray(0));
+	GLCall(glUseProgram(0));
+	GLCall(glBindBuffer(GL_ARRAY_BUFFER, 0));
+	GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
+
+
+
 	/* Loop until the user closes the window */
 	while (!glfwWindowShouldClose(window))
 	{
 		/* Render here */
 		glClear(GL_COLOR_BUFFER_BIT);
+		GLCall(glUseProgram(program));
 		glUniform4f(location, r, 0.3f, 0.9f, 1.0f);
+		GLCall(glBindVertexArray(vao));
+		//GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo));
+
 
 		if (r > 1.0f) {
 			increment = -0.05f;
