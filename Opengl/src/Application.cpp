@@ -12,6 +12,7 @@
 #include "VertexBufferLayout.h"
 #include"VertexArray.h"
 #include"Shader.h"
+#include "Texture.h"
 
 
 int main(void)
@@ -56,11 +57,11 @@ int main(void)
 
 	{
 
-		float positions[8] = {
-			-0.5f,-0.5f,
-			0.5f,-0.5f,
-			0.5f,0.5f,
-			-0.5f,0.5f
+		float positions[16] = {
+			-0.5f,-0.5f,0.0f,0.0f,
+			0.5f,-0.5f,1.0f,0.0f,
+			0.5f,0.5f,1.0f,1.0f,
+			-0.5f,0.5f,0.0f,1.0f
 		};
 
 		unsigned int indices[] = {
@@ -68,13 +69,16 @@ int main(void)
 			2,3,0
 		};
 
+		GLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+		GLCall(glEnable(GL_BLEND));
+
 		VertexArray va;
 
-		VertexBuffer vbo(positions, 4 * 2 * sizeof(float));
+		VertexBuffer vbo(positions,16* sizeof(float));
 
 		VertexBufferLayout layout;
 		layout.Push<float>(2);
-
+		layout.Push<float>(2);
 		va.AddBuffer(vbo, layout);
 
 		IndexBuffer  ibo(indices, 6);
@@ -91,6 +95,11 @@ int main(void)
 
 		float r = 0.0f;
 		float increment = 0.05f;
+
+		Texture texture("res/textures/e.png");
+
+		texture.Bind();
+		shader.SetUniform1i("u_Texture", 0);
 
 
 		va.UnBind();
