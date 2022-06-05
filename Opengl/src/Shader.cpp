@@ -99,6 +99,10 @@ void Shader::SetUniform1i(const std::string &name,int v1)
 {
 	GLCall(glUniform1i(GetUniformLocation(name), v1));
 }
+void Shader::SetUniformMat4(const std::string & name,const glm::mat4 &v1)
+{
+	GLCall(glUniformMatrix4fv(GetUniformLocation(name),1,GL_FALSE,&v1[0][0]));
+}
 unsigned int Shader::CompileShader(unsigned int type, const std::string& source)
 {
 	unsigned int id = glCreateShader(type);

@@ -13,6 +13,8 @@
 #include"VertexArray.h"
 #include"Shader.h"
 #include "Texture.h"
+#include "glm/glm.hpp"
+#include "glm/gtc/matrix_transform.hpp"
 
 
 int main(void)
@@ -76,6 +78,9 @@ int main(void)
 
 		VertexBuffer vbo(positions,16* sizeof(float));
 
+
+
+
 		VertexBufferLayout layout;
 		layout.Push<float>(2);
 		layout.Push<float>(2);
@@ -86,12 +91,16 @@ int main(void)
 
 
 
+		glm::mat4 proj = glm::ortho(-2.0f, 2.0f, -1.5f, 1.5f, -1.0f, 1.0f); //4:3
 
+
+		//glm::mat4 proj = glm::ortho(-0.5f, 0.5f, -0.5f, 0.5f, -1.0f, 1.0f);
 		Shader shader("res/shaders/Basic.shader");
 		shader.Bind();
 
 		shader.SetUniform4f("u_Color", 0.5f, 0.3f, 0.9f, 1.0f);
-		
+		shader.SetUniformMat4("u_MVP", proj);
+
 
 		float r = 0.0f;
 		float increment = 0.05f;
