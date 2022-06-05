@@ -16,7 +16,9 @@
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 
-
+#include "imgui/imgui.h"
+#include "imgui/imgui_impl_glfw.h"
+#include "imgui/imgui_impl_opengl3.h"
 int main(void)
 {
 
@@ -49,7 +51,14 @@ int main(void)
 
 	glfwSwapInterval(1);
 
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
+	ImGuiIO& io = ImGui::GetIO(); (void)io;
+	const char* glsl_version = "#version 130";
+	ImGui_ImplGlfw_InitForOpenGL(window, true);
+	ImGui_ImplOpenGL3_Init((char *)glGetString(GL_NUM_SHADING_LANGUAGE_VERSIONS));
 
+	ImGui::StyleColorsDark();
 	if (glewInit() != GLEW_OK) {
 		std::cout << "Error" << std::endl;
 	}
@@ -92,10 +101,8 @@ int main(void)
 
 		//ortho projection,used in  2d
 		glm::mat4 proj = glm::ortho(0.0f, 960.0f, 0.0f, 540.0f, -1.0f, 1.0f); //4:3
-
-		glm::vec4 vp(100.0f, 100.f, 0.0f, 1.0f);
-
-		glm::vec4 result = proj * vp;
+		glm::mat4 view=glm::translate(glm::mat4(1.0f), glm::vec3(-100.0f, 0.0f, 0.0f));
+		
 		//perpsecptive projection
 
 
@@ -104,7 +111,6 @@ int main(void)
 		shader.Bind();
 
 		shader.SetUniform4f("u_Color", 0.5f, 0.3f, 0.9f, 1.0f);
-		shader.SetUniformMat4("u_MVP", proj);
 
 
 		float r = 0.0f;
@@ -123,13 +129,25 @@ int main(void)
 
 		Renderer renderer;
 
+		ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+		bool show_demo_window = true;
+		bool show_another_window = false;
+
+		glm::vec3 translation(200.0f, 200.0f, 0.0f);
 		/* Loop until the user closes the window */
 		while (!glfwWindowShouldClose(window))
 		{
+
+			
 			/* Render here */
 			renderer.Clear();
+			
+			ImGui_ImplOpenGL3_NewFrame();
+			ImGui_ImplGlfw_NewFrame();
+			ImGui::NewFrame();
+
+
 			shader.Bind();
-			shader.SetUniform4f("u_Color", r, 0.3f, 0.9f, 1.0f);
 			if (r > 1.0f) {
 				increment = -0.05f;
 			}
@@ -139,7 +157,29 @@ int main(void)
 
 			r += increment;
 
+			glm::mat4 model = glm::translate(glm::mat4(1.0f), translation);
+			glm::mat4 mvp = proj * view*model;
+			shader.SetUniform4f("u_Color", r, 0.3f, 0.9f, 1.0f);
+			shader.SetUniformMat4("u_MVP", mvp);
+
+			{
+				ImGui::SliderFloat3("Translation", &translation.x,0.0f,960.0f);
+				ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+
+			}
+
 			renderer.Draw(va, ibo, shader);
+
+			
+			
+
+			ImGui::Render();
+			/*int display_w, display_h;
+			glfwGetFramebufferSize(window, &display_w, &display_h);
+			glViewport(0, 0, display_w, display_h);
+			glClearColor(clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w);
+			glClear(GL_COLOR_BUFFER_BIT);*/
+			ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
 			//glDrawArrays(GL_TRIANGLES, 0, 3);
 			//glDrawElements(GL_TRIANGLES,3,)
@@ -151,6 +191,12 @@ int main(void)
 		}
 		
 	}
+
+	// Cleanup
+	ImGui_ImplOpenGL3_Shutdown();
+	ImGui_ImplGlfw_Shutdown();
+	ImGui::DestroyContext();
+
 	glfwTerminate();
 	return 0;
 }
